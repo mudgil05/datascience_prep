@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>₹1Cr Engine — Data Science Transformation System</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{
+  --g:#00ff88;--c:#00d4ff;--p:#bf00ff;--r:#ff2d55;--y:#ffcc00;--o:#ff6b00;
+  --bg:#030305;--s0:#07070d;--s1:#0c0c16;--s2:#12121f;--s3:#18182a;
+  --border:#1e1e35;--border2:#2a2a45;
+  --t0:#ffffff;--t1:#c8c8e0;--t2:#888899;--t3:#444455;
+  --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'Space Mono',monospace;
+  --glow-g:0 0 20px #00ff8855,0 0 40px #00ff8822;
+  --glow-c:0 0 20px #00d4ff55,0 0 40px #00d4ff22;
+  --glow-p:0 0 20px #bf00ff55,0 0 40px #bf00ff22;
+  --glow-r:0 0 20px #ff2d5555,0 0 40px #ff2d5522;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t0);font-family:var(--fb);font-size:15px;overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.6}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(ellipse 60% 40% at 80% 20%,#bf00ff08 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 70%,#00d4ff06 0%,transparent 60%),
+    linear-gradient(#0c0c1a06 1px,transparent 1px),linear-gradient(90deg,#0c0c1a06 1px,transparent 1px);
+  background-size:100% 100%,100% 100%,60px 60px,60px 60px}
+::-webkit-scrollbar{width:4px;background:var(--s0)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+h1,h2,h3,h4,h5{font-family:var(--fh);font-weight:700;letter-spacing:-.3px;line-height:1.2}
+button{cursor:pointer;border:none;background:none;color:inherit;font-family:var(--fb)}
+input,select,textarea{font-family:var(--fb)}
+a{color:var(--c);text-decoration:none}
+
+/* ── LAYOUT ── */
+.app{position:relative;z-index:1;min-height:100vh;display:flex}
+.sidebar{width:68px;position:fixed;top:0;left:0;bottom:0;z-index:200;background:rgba(3,3,5,.96);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:18px 0;gap:4px;backdrop-filter:blur(20px)}
+.logo-mark{width:36px;height:36px;margin-bottom:20px;position:relative;cursor:pointer}
+.logo-mark svg{width:100%;height:100%;animation:logoSpin 20s linear infinite}
+@keyframes logoSpin{to{transform:rotate(360deg)}}
+.nav-item{width:46px;height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:all .2s;color:var(--t3);border:1px solid transparent;position:relative}
+.nav-item:hover{background:var(--s2);color:var(--t2)}
+.nav-item.active{background:rgba(0,255,136,.06);border-color:rgba(0,255,136,.25);color:var(--g);box-shadow:0 0 15px rgba(0,255,136,.15)}
+.nav-icon{font-size:17px;line-height:1}
+.nav-label{font-size:8px;font-family:var(--fm);letter-spacing:.8px;text-transform:uppercase}
+.nav-tooltip{position:absolute;left:54px;top:50%;transform:translateY(-50%);background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:11px;white-space:nowrap;color:var(--t1);pointer-events:none;opacity:0;transition:.15s;font-family:var(--fm);z-index:300}
+.nav-item:hover .nav-tooltip{opacity:1}
+.main{margin-left:68px;flex:1;min-height:100vh}
+.topbar{position:fixed;top:0;left:68px;right:0;z-index:100;height:54px;background:rgba(3,3,5,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);display:flex;align-items:center;padding:0 28px;gap:16px}
+.topbar-title{font-family:var(--fh);font-size:14px;font-weight:700;letter-spacing:.5px;color:var(--g)}
+.topbar-path{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:10px;color:var(--t3)}
+.topbar-path span{color:var(--t2)}
+.topbar-sep{flex:1}
+.path-chip{display:flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--border2);border-radius:4px;font-family:var(--fm);font-size:10px;color:var(--t2);background:var(--s1)}
+.path-dot{width:5px;height:5px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.content{padding:76px 32px 48px;max-width:1360px;margin:0 auto}
+
+/* ── CARDS ── */
+.card{background:var(--s0);border:1px solid var(--border);border-radius:12px;transition:all .2s;overflow:hidden}
+.card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.card-glow-g:hover{border-color:rgba(0,255,136,.3);box-shadow:var(--glow-g)}
+.card-glow-c:hover{border-color:rgba(0,212,255,.3);box-shadow:var(--glow-c)}
+.card-glow-p:hover{border-color:rgba(191,0,255,.3);box-shadow:var(--glow-p)}
+.card-glow-r:hover{border-color:rgba(255,45,85,.3);box-shadow:var(--glow-r)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;border:1px solid;transition:all .2s;white-space:nowrap;letter-spacing:.2px;background:transparent}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--g);border-color:var(--g);color:#000;font-weight:700}
+.btn-primary:hover{box-shadow:var(--glow-g);transform:translateY(-2px)}
+.btn-g{background:rgba(0,255,136,.08);border-color:rgba(0,255,136,.3);color:var(--g)}
+.btn-g:hover{background:rgba(0,255,136,.15);box-shadow:var(--glow-g)}
+.btn-c{background:rgba(0,212,255,.08);border-color:rgba(0,212,255,.3);color:var(--c)}
+.btn-c:hover{background:rgba(0,212,255,.15);box-shadow:var(--glow-c)}
+.btn-p{background:rgba(191,0,255,.08);border-color:rgba(191,0,255,.3);color:var(--p)}
+.btn-p:hover{background:rgba(191,0,255,.15);box-shadow:var(--glow-p)}
+.btn-r{background:rgba(255,45,85,.08);border-color:rgba(255,45,85,.3);color:var(--r)}
+.btn-r:hover{background:rgba(255,45,85,.15);box-shadow:var(--glow-r)}
+.btn-ghost{border-color:var(--border2);color:var(--t2)}
+.btn-ghost:hover{border-color:var(--t3);color:var(--t1)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.btn-lg{padding:14px 32px;font-size:16px;font-weight:700}
+
+/* ── FORM ELEMENTS ── */
+.input{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--t0);font-family:var(--fb);font-size:14px;outline:none;width:100%;transition:.2s}
+.input:focus{border-color:rgba(0,212,255,.5);box-shadow:0 0 0 3px rgba(0,212,255,.1)}
+.input::placeholder{color:var(--t3)}
+select.input option{background:var(--s2)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:4px;font-family:var(--fm);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;border:1px solid}
+.badge-g{background:rgba(0,255,136,.1);color:var(--g);border-color:rgba(0,255,136,.3)}
+.badge-c{background:rgba(0,212,255,.1);color:var(--c);border-color:rgba(0,212,255,.3)}
+.badge-p{background:rgba(191,0,255,.1);color:var(--p);border-color:rgba(191,0,255,.3)}
+.badge-r{background:rgba(255,45,85,.1);color:var(--r);border-color:rgba(255,45,85,.3)}
+.badge-y{background:rgba(255,204,0,.1);color:var(--y);border-color:rgba(255,204,0,.3)}
+.badge-o{background:rgba(255,107,0,.1);color:var(--o);border-color:rgba(255,107,0,.3)}
+
+/* ── SECTION HEADERS ── */
+.sec-eyebrow{font-family:var(--fm);font-size:10px;color:var(--t3);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.sec-eyebrow::before{content:'';width:24px;height:1px;background:var(--g);box-shadow:0 0 6px var(--g)}
+.sec-title{font-family:var(--fh);font-size:clamp(22px,3vw,32px);font-weight:800;margin-bottom:8px}
+.sec-sub{color:var(--t2);font-size:15px;max-width:600px;line-height:1.7}
+.grad-g{background:linear-gradient(135deg,var(--g),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.grad-p{background:linear-gradient(135deg,var(--p),var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ── PROGRESS ── */
+.prog-bar{height:4px;background:var(--s2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.prog-fill-g{background:linear-gradient(90deg,var(--g),var(--c))}
+.prog-fill-p{background:linear-gradient(90deg,var(--p),var(--r))}
+.prog-fill-y{background:linear-gradient(90deg,var(--y),var(--o))}
+
+/* ── STATS ── */
+.stat-card{padding:22px;border-radius:12px;background:var(--s0);border:1px solid var(--border);position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.stat-card-g::after{background:linear-gradient(90deg,var(--g),var(--c));box-shadow:0 0 10px var(--g)}
+.stat-card-p::after{background:linear-gradient(90deg,var(--p),var(--r));box-shadow:0 0 10px var(--p)}
+.stat-card-y::after{background:linear-gradient(90deg,var(--y),var(--o));box-shadow:0 0 10px var(--y)}
+.stat-card-c::after{background:linear-gradient(90deg,var(--c),var(--p));box-shadow:0 0 10px var(--c)}
+.stat-value{font-family:var(--fh);font-size:34px;font-weight:800;line-height:1}
+.stat-label{font-family:var(--fm);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px}
+
+/* ── PHASE BLOCKS ── */
+.phase-block{border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:.2s}
+.phase-header{padding:22px 26px;display:flex;align-items:center;gap:20px;cursor:pointer;background:var(--s0)}
+.phase-header:hover{background:var(--s1)}
+.phase-num{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:20px;font-weight:800;flex-shrink:0}
+.phase-body{padding:24px 26px;border-top:1px solid var(--border);background:var(--bg)}
+
+/* ── PROJECT CARDS ── */
+.proj-card{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--s0);transition:.25s;cursor:pointer}
+.proj-card:hover{transform:translateY(-4px);border-color:var(--border2)}
+.proj-header{padding:24px 24px 16px;border-bottom:1px solid var(--border)}
+.proj-body{padding:20px 24px}
+.proj-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--s1)}
+.impact-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:6px;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);font-family:var(--fm);font-size:10px;color:var(--g)}
+
+/* ── QUIZ ── */
+.quiz-q{padding:22px;background:var(--s0);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:16px}
+.quiz-q:hover{border-color:var(--border2);transform:translateX(3px)}
+.quiz-q.done{border-left:3px solid var(--g)}
+.quiz-q.fail{border-left:3px solid var(--r)}
+.q-num{font-family:var(--fm);font-size:10px;color:var(--t3);min-width:32px}
+.q-text{flex:1;font-size:14px;font-weight:500;color:var(--t1)}
+
+/* ── MODAL ── */
+.modal{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.88);backdrop-filter:blur(16px);display:flex;align-items:flex-start;justify-content:center;padding:20px 16px;overflow-y:auto;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{background:var(--s0);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:900px;margin:auto;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.9)}
+.modal-head{padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.modal-body{padding:28px;max-height:78vh;overflow-y:auto}
+
+/* ── QUIZ OPTIONS ── */
+.q-opt{padding:14px 18px;border:1px solid var(--border);border-radius:8px;background:var(--s1);cursor:pointer;transition:.15s;display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;color:var(--t1);font-family:var(--fb);font-size:14px;margin-bottom:8px}
+.q-opt:hover:not(.dis){border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.05)}
+.q-opt.correct{border-color:rgba(0,255,136,.5);background:rgba(0,255,136,.08);color:var(--g)}
+.q-opt.wrong{border-color:rgba(255,45,85,.5);background:rgba(255,45,85,.08);color:var(--r)}
+.q-opt.dis{cursor:default}
+.opt-key{width:24px;height:24px;border-radius:5px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;color:var(--t3);flex-shrink:0}
+.q-opt.correct .opt-key{border-color:var(--g);color:var(--g);background:rgba(0,255,136,.15)}
+.q-opt.wrong .opt-key{border-color:var(--r);color:var(--r);background:rgba(255,45,85,.15)}
+
+/* ── FEEDBACK BOX ── */
+.feedback{margin-top:16px;padding:18px;border-radius:10px;animation:slideUp .3s}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.feedback-correct{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2)}
+.feedback-wrong{background:rgba(255,45,85,.06);border:1px solid rgba(255,45,85,.2)}
+.feedback-title{font-family:var(--fh);font-weight:700;margin-bottom:6px;font-size:14px}
+.feedback-exp{font-size:13px;color:var(--t2);line-height:1.7}
+
+/* ── INCOME SIMULATOR ── */
+.income-dial{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px}
+.income-amount{font-family:var(--fh);font-size:clamp(36px,6vw,64px);font-weight:800;line-height:1}
+.income-change{font-family:var(--fm);font-size:13px;color:var(--g);margin-top:8px}
+
+/* ── TIMELINE ── */
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:10px;top:8px;bottom:8px;width:1px;background:linear-gradient(180deg,var(--g),var(--p),var(--c))}
+.tl-item{position:relative;margin-bottom:28px}
+.tl-dot{position:absolute;left:-28px;width:12px;height:12px;border-radius:50%;border:2px solid;top:4px}
+.tl-content{padding:16px 20px;background:var(--s0);border:1px solid var(--border);border-radius:10px}
+
+/* ── SCHEDULER ── */
+.day-block{padding:14px 16px;background:var(--s1);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:14px}
+.day-block.done{border-color:rgba(0,255,136,.2);background:rgba(0,255,136,.04)}
+.time-chip{font-family:var(--fm);font-size:10px;color:var(--t3);padding:2px 8px;border:1px solid var(--border);border-radius:3px;min-width:72px;text-align:center}
+.task-check{width:20px;height:20px;border-radius:5px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s;font-size:12px}
+.task-check:hover{border-color:var(--g)}
+.task-check.checked{background:var(--g);border-color:var(--g);color:#000}
+
+/* ── SKILL RADAR ── */
+.skill-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.skill-name{font-family:var(--fm);font-size:11px;color:var(--t2);width:100px;flex-shrink:0}
+.skill-bar{flex:1;height:6px;background:var(--s2);border-radius:3px;overflow:hidden}
+.skill-fill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.skill-pct{font-family:var(--fm);font-size:10px;color:var(--t3);width:32px;text-align:right;flex-shrink:0}
+
+/* ── NETWORKING TRACKER ── */
+.tracker-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s1);border:1px solid var(--border);border-radius:8px;margin-bottom:8px}
+.tracker-avatar{width:32px;height:32px;border-radius:8px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+
+/* ── GRID LAYOUTS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.g-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.g-proj{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:22px}
+@media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}.g-proj{grid-template-columns:1fr}}
+
+/* ── ENTRANCE SCREEN ── */
+.path-selector{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;position:relative;z-index:1}
+.path-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:800px;width:100%;margin:48px auto 0}
+.path-card{padding:32px 28px;background:var(--s0);border:1px solid var(--border);border-radius:16px;cursor:pointer;transition:all .3s;text-align:left;position:relative;overflow:hidden}
+.path-card::before{content:'';position:absolute;inset:0;opacity:0;transition:.3s}
+.path-card:hover{transform:translateY(-6px)}
+.path-card.path-a:hover{border-color:rgba(0,255,136,.4);box-shadow:var(--glow-g)}
+.path-card.path-b:hover{border-color:rgba(191,0,255,.4);box-shadow:var(--glow-p)}
+.path-card.path-c:hover{border-color:rgba(255,204,0,.4);box-shadow:0 0 30px rgba(255,204,0,.2)}
+.path-card.path-d:hover{border-color:rgba(0,212,255,.4);box-shadow:var(--glow-c)}
+.path-emoji{font-size:36px;margin-bottom:16px;display:block}
+.path-name{font-family:var(--fh);font-size:19px;font-weight:800;margin-bottom:6px}
+.path-stack{font-family:var(--fm);font-size:10px;color:var(--t3);margin-bottom:12px;letter-spacing:.5px}
+.path-desc{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:16px}
+.path-range{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:11px;font-weight:700}
+@media(max-width:650px){.path-grid{grid-template-columns:1fr}}
+
+/* ── HERO ── */
+.hero-tag{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border:1px solid rgba(0,255,136,.25);border-radius:100px;background:rgba(0,255,136,.06);font-family:var(--fm);font-size:10px;color:var(--g);letter-spacing:2px;margin-bottom:24px}
+.hero-tag::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--g);box-shadow:0 0 8px var(--g);animation:pulse 1.5s infinite}
+.hero-title{font-family:var(--fh);font-size:clamp(38px,5.5vw,68px);font-weight:800;line-height:1.05;letter-spacing:-1.5px;margin-bottom:20px}
+.hero-sub{font-size:17px;color:var(--t2);max-width:580px;line-height:1.75;margin-bottom:36px}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;padding:4px;background:var(--s1);border-radius:10px;border:1px solid var(--border)}
+.tab{padding:8px 18px;border-radius:7px;font-family:var(--fm);font-size:11px;letter-spacing:.5px;cursor:pointer;transition:.2s;color:var(--t3);white-space:nowrap}
+.tab.active{background:var(--s2);color:var(--t0);border:1px solid var(--border2)}
+.tab:hover:not(.active){color:var(--t2)}
+
+/* ── ALERT ── */
+.alert{padding:14px 18px;border-radius:8px;font-size:13px;line-height:1.6;display:flex;gap:12px;align-items:flex-start}
+.alert-y{background:rgba(255,204,0,.06);border:1px solid rgba(255,204,0,.2);color:var(--t1)}
+.alert-g{background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);color:var(--t1)}
+.alert-r{background:rgba(255,45,85,.06);border:1px solid rgba(255,45,85,.2);color:var(--t1)}
+.alert-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+
+/* ── READINESS SCORE ── */
+.readiness-ring{position:relative;width:140px;height:140px}
+.readiness-ring svg{transform:rotate(-90deg)}
+.readiness-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* ── WEEKLY TEST ── */
+.test-timer{font-family:var(--fh);font-size:44px;font-weight:800;letter-spacing:-2px;color:var(--g);text-shadow:var(--glow-g)}
+.test-timer.warning{color:var(--r);text-shadow:var(--glow-r)}
+
+/* ── TRANSITION ── */
+.page-enter{animation:pageIn .25s ease}
+@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── UTILITY ── */
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-8{gap:8px}.gap-12{gap:12px}.gap-16{gap:16px}.gap-20{gap:20px}.gap-24{gap:24px}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-40{margin-top:40px}
+.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mb-20{margin-bottom:20px}.mb-24{margin-bottom:24px}
+.p-16{padding:16px}.p-20{padding:20px}.p-24{padding:24px}
+.text-g{color:var(--g)}.text-c{color:var(--c)}.text-p{color:var(--p)}.text-r{color:var(--r)}.text-y{color:var(--y)}.text-o{color:var(--o)}
+.text-t1{color:var(--t1)}.text-t2{color:var(--t2)}.text-t3{color:var(--t3)}
+.font-mono{font-family:var(--fm)}.font-head{font-family:var(--fh)}
+.text-sm{font-size:13px}.text-xs{font-size:11px}.text-xxs{font-size:10px}
+.fw-7{font-weight:700}.fw-8{font-weight:800}
+.w-full{width:100%}.rounded-full{border-radius:100px}
+.opacity-0{opacity:0}.pointer{cursor:pointer}
+.hr{border:none;border-top:1px solid var(--border);margin:24px 0}
+.section{margin-bottom:48px}
+
+/* ── NUMBER CALLOUT ── */
+.rupee-callout{font-family:var(--fh);font-size:clamp(28px,4vw,42px);font-weight:800;background:linear-gradient(135deg,var(--y),var(--o));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ── CODE BLOCK ── */
+.code-block{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:16px 18px;font-family:var(--fm);font-size:12px;color:var(--g);line-height:1.8;overflow-x:auto}
+.code-block .kw{color:var(--p)}.code-block .fn{color:var(--c)}.code-block .str{color:var(--y)}.code-block .cm{color:var(--t3)}
+
+/* ── CHECKLIST ── */
+.checklist-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border)}
+.checklist-item:last-child{border-bottom:none}
+.check-box{width:22px;height:22px;border-radius:6px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.2s;margin-top:1px}
+.check-box:hover{border-color:var(--g)}
+.check-box.checked{background:var(--g);border-color:var(--g);color:#000;font-size:12px}
+.check-label{font-size:14px;color:var(--t1);line-height:1.5}
+.check-label.done{text-decoration:line-through;color:var(--t3)}
+
+/* ── NAV DIVIDER ── */
+.nav-div{width:30px;height:1px;background:var(--border);margin:8px 0}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback}=React;
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+
+const PATHS={
+  A:{id:'A',name:'Data Analyst',emoji:'📊',color:'#00ff88',colorRgb:'0,255,136',
+    stack:'SQL · Python · Power BI · Business Communication',
+    desc:'Fastest path to first job. Master SQL deeply and learn to tell stories with data. Ceiling rises sharply with domain expertise.',
+    range:'₹12L → ₹60L',badge:'badge-g',btnClass:'btn-g',
+    goal:'Crack analyst roles at product companies. Build dashboards that drive decisions.'},
+  B:{id:'B',name:'Data Scientist / ML',emoji:'🤖',color:'#bf00ff',colorRgb:'191,0,255',
+    stack:'Python · ML/DL · MLOps · System Design · Domain',
+    desc:'Highest ceiling. Technical track requiring patience. ML Engineer pays more than pure DS now. FAANG path.',
+    range:'₹18L → ₹1.5Cr',badge:'badge-p',btnClass:'btn-p',
+    goal:'Build and deploy ML systems. Land staff/senior roles at FAANG or top product companies.'},
+  C:{id:'C',name:'Freelance / Consulting',emoji:'💰',color:'#ffcc00',colorRgb:'255,204,0',
+    stack:'Domain Expertise · Delivery · Sales · Communication',
+    desc:'Geographic arbitrage. US clients on India cost base. Theoretically uncapped. Slow first 12 months — then exponential.',
+    range:'₹40L → ₹3Cr+',badge:'badge-y',btnClass:'btn-ghost',
+    goal:'Build 2-3 retainer clients at $3-5K/month. Start while employed, not after quitting.'},
+  D:{id:'D',name:'Product Analytics / Growth',emoji:'🚀',color:'#00d4ff',colorRgb:'0,212,255',
+    stack:'SQL · Experimentation · Product Sense · Storytelling',
+    desc:'Hard to outsource. Highly visible to leadership. Often promoted to PM or strategy. Strong communication required.',
+    range:'₹15L → ₹1.5Cr',badge:'badge-c',btnClass:'btn-c',
+    goal:'Senior Product Analyst at unicorn. Drive growth loops, retention models, and A/B test frameworks.'}
+};
+
+const PHASES=[
+  {id:1,num:'01',label:'Foundation',months:'0–3 months',color:'#00ff88',
+   goal:'Become dangerous with SQL + Python + Stats on real datasets. Ship 2 EDA projects.',
+   skills:['SQL Window Functions','Python Pandas/NumPy','Statistics & A/B Testing','EDA Mindset'],
+   tasks:[
+     {t:'Solve 100 SQL problems on StrataScratch + DataLemur',link:'https://datalemur.com'},
+     {t:'Build EDA on Olist e-commerce dataset (real, messy data)'},
+     {t:'Run A/B test simulation with Python (t-test, chi-square)'},
+     {t:'Write 5-line insight summaries for every dataset analysed'},
+     {t:'Learn window functions: ROW_NUMBER, LAG, LEAD, running totals'},
+     {t:'Complete 2 EDA projects with business hypothesis framing'},
+   ],
+   deliverables:['100+ SQL problems solved','2 EDA notebooks with business insights','Ability to crack any analyst SQL screening']},
+  {id:2,num:'02',label:'Intermediate',months:'3–6 months',color:'#00d4ff',
+   goal:'Build ML intuition through business case studies, not Kaggle leaderboards.',
+   skills:['XGBoost/LightGBM','Feature Engineering','Model Evaluation','Business Case Studies'],
+   tasks:[
+     {t:'Build churn model: frame as "which 20% to call to retain 80% revenue?"'},
+     {t:'Credit risk model: minimize loss given approval rate constraint'},
+     {t:'Demand forecast: stockout vs holding cost trade-off'},
+     {t:'Lead scoring: maximize sales team hourly conversion rate'},
+     {t:'Master feature engineering: RFM, lag features, target encoding'},
+     {t:'Explain model decisions to non-technical PM (SHAP values)'},
+   ],
+   deliverables:['4 case studies with ₹ business framing','XGBoost end-to-end proficiency','Model explanation skills']},
+  {id:3,num:'03',label:'Advanced',months:'6–12 months',color:'#bf00ff',
+   goal:'Ship production-grade work. Pick one domain and go deep. Start applying Month 8.',
+   skills:['FastAPI + Docker','MLOps & Monitoring','Power BI / Tableau','Domain Specialization'],
+   tasks:[
+     {t:'Deploy a model API with FastAPI + Docker (sub-100ms response)'},
+     {t:'Set up CI/CD with GitHub Actions for model deployment'},
+     {t:'Add drift monitoring: PSI on top features, alert on threshold'},
+     {t:'Pick ONE domain: Fintech / Product / Marketing / Healthcare'},
+     {t:'Build Streamlit dashboard for stakeholder demo'},
+     {t:'Start applying to 5-10 jobs/week from Month 8'},
+   ],
+   deliverables:['3 deployed projects with live URLs','1 domain-specialized portfolio piece','Active job applications']},
+  {id:4,num:'04',label:'Monetization',months:'12+ months',color:'#ffcc00',
+   goal:'Convert skill into income. Multiple streams. Start before you feel ready.',
+   skills:['Resume with ₹ Impact','LinkedIn Strategy','Freelance Pipeline','Remote Job Hunt'],
+   tasks:[
+     {t:'Rewrite resume: every bullet has a number (₹ saved, % improvement)'},
+     {t:'Send 20 thoughtful DMs/week to people in target companies'},
+     {t:'Comment on 5 LinkedIn posts/day from senior DS folks'},
+     {t:'Post 3x/week on LinkedIn for 12 months straight'},
+     {t:'Cold outreach to 10 startups/week with specific solved-problem pitch'},
+     {t:'Target Toptal/Braintrust after 5+ Upwork reviews'},
+   ],
+   deliverables:['First role at ₹15-30L OR ₹50K freelance month','5K+ LinkedIn followers','Inbound opportunities flowing']}
+];
+
+const PROJECTS=[
+  {id:'P1',title:'Revenue Leakage Detection',category:'Analytics',impact:'₹2-5% Revenue Recovery',
+   difficulty:'Intermediate',color:'#00ff88',emoji:'🔍',
+   business:'E-commerce/SaaS companies lose 2–5% of revenue to billing errors and failed renewals. Build an automated detection system.',
+   stack:['Python','SQL','Streamlit','Isolation Forest','Slack API'],
+   steps:['Define 6-8 leakage rules with finance framing','SQL queries to detect each rule + anomaly detection','Quantify ₹ leakage per category','Streamlit dashboard: Top 10 leaks this month','Slack alerting via webhook for high-value leaks'],
+   standout:'Add root cause classifier: given a leak, predict which team caused it. Shows systems thinking.',
+   frame:'Detected ₹X leakage representing Y% of revenue'},
+  {id:'P2',title:'Fraud Detection API (Real-Time)',category:'ML Engineering',impact:'Sub-100ms Scoring',
+   difficulty:'Advanced',color:'#bf00ff',emoji:'⚡',
+   business:'Build a production fraud scoring API. Most candidates build notebooks. You build a system.',
+   stack:['XGBoost','FastAPI','Redis','Docker','SHAP'],
+   steps:['EDA on fraud patterns: time, amount, geography','Feature engineering: velocity features, graph features','Train XGBoost + NN, compare on cost-weighted metric','Deploy FastAPI + Redis cache, p95 < 100ms','Add drift monitoring + SHAP explanation endpoint'],
+   standout:'Adversarial robustness test: show how model fails when fraudsters mimic patterns.',
+   frame:'Reduced false positives by X% while maintaining Y% recall, saving ₹Z in manual review'},
+  {id:'P3',title:'CLV Prediction + Strategy Engine',category:'Business Intelligence',impact:'Marketing ROI Optimizer',
+   difficulty:'Advanced',color:'#00d4ff',emoji:'💎',
+   business:'Most CLV projects predict a number and stop. Build one that prescribes action: invest, churn, upsell.',
+   stack:['Python','BG/NBD','XGBoost','Streamlit','SciPy'],
+   steps:['Build CLV using BG/NBD + Gamma-Gamma AND gradient boosting','Segment customers into 9 quadrants (value × churn risk)','Define strategy per segment: VIP retention, win-back, upsell','Marketing dashboard: filter segments, export lists','Simulate: invest ₹X on segment Y → expected CLV uplift ₹Z'],
+   standout:'Add uplift modeling: predict incremental CLV from intervention. Rare and senior-level.',
+   frame:'Identified ₹X CLV uplift opportunity across Y customer segments'},
+  {id:'P4',title:'Marketing Mix Modeling Dashboard',category:'Advanced Analytics',impact:'CMOs pay $200K for this',
+   difficulty:'Expert',color:'#ffcc00',emoji:'📈',
+   business:'How much incremental revenue does each channel drive? This is an actual CMO problem.',
+   stack:['PyMC','Bayesian','SciPy Optimize','Streamlit','Plotly'],
+   steps:['Generate 2yr weekly data: 6 channels with realistic spend','Apply adstock + saturation curves (Hill function)','Fit Bayesian regression: channel ROI with credible intervals','Budget optimizer: maximize revenue given total spend','Dashboard: shift ₹X from TV to digital → revenue change ±₹Y'],
+   standout:'Add geo-experiments: validate MMM with holdout regions. What real MMM consultants do.',
+   frame:'Improved marketing ROI by X% by reallocating ₹Y from underperforming channels'},
+  {id:'P5',title:'Recommendation Engine (Niche)',category:'ML Engineering',impact:'Real-Time API',
+   difficulty:'Advanced',color:'#ff6b00',emoji:'🎯',
+   business:'Skip Netflix/Movies. Build for a niche. A working demo crushes screen rounds at product companies.',
+   stack:['LightFM','Sentence Transformers','FastAPI','Redis','Streamlit'],
+   steps:['Build 3 approaches: CF, content-based, hybrid','Sentence-transformers for content embeddings','Compare NDCG@K AND build online demo','FastAPI + Redis-backed user profile cache < 200ms','Add cold-start handling for new users'],
+   standout:'Cold-start handling: show how you handle brand new users. Most candidates skip this.',
+   frame:'Improved recommendation click-through by X%, serving Y+ active users at ZZ ms latency'},
+  {id:'P6',title:'LLM Support Triage System',category:'LLM / AI',impact:'Ops Efficiency',
+   difficulty:'Expert',color:'#ff2d55',emoji:'🤖',
+   business:'Auto-classify, route, and draft responses to support tickets. LLM projects are table stakes in 2026.',
+   stack:['OpenAI/Claude API','RAG','Qdrant','FastAPI','Streamlit'],
+   steps:['Classify tickets: urgency, category, sentiment','Fine-tune vs structured prompting: compare cost vs accuracy','Index past tickets in vector DB (Qdrant/Chroma)','Generate responses using RAG pattern','Track: agent acceptance rate, time saved per ticket'],
+   standout:'Add evaluation harness: LLM-as-judge + human eval. Show you build systems that dont hallucinate.',
+   frame:'Reduced avg ticket resolution time by X minutes, saving ₹Y in support costs annually'}
+];
+
+const SQL_QUESTIONS=[
+  {id:1,diff:'easy',title:'Running Total by Day',q:'Calculate daily cumulative revenue. Table: sales(date, amount)',
+   opts:['SUM(amount) OVER (ORDER BY date)','SUM(amount) GROUP BY date','CUMSUM(amount)','RUNNING_SUM(amount)'],
+   ans:0,exp:'Window SUM with ORDER BY creates a running total. Without PARTITION BY, it runs over all rows.',tags:['window','sum']},
+  {id:2,diff:'easy',title:'Customers Never Ordered',q:'Find customers with no orders. Best SQL pattern?',
+   opts:['LEFT JOIN orders WHERE o.id IS NULL','NOT IN subquery','EXCEPT','WHERE orders = 0'],
+   ans:0,exp:'LEFT JOIN + IS NULL (anti-join) is faster and null-safe. NOT IN fails if subquery contains NULLs.',tags:['joins','anti-join']},
+  {id:3,diff:'med',title:'Month-over-Month Growth',q:'Calculate % revenue change vs previous month',
+   opts:['(curr - LAG(curr) OVER(ORDER BY month)) / LAG(curr) OVER(ORDER BY month) * 100','curr / prev * 100','LEAD() OVER()','PERCENT_CHANGE()'],
+   ans:0,exp:'LAG() accesses previous row value. Divide difference by prior value for % change.',tags:['window','lag','growth']},
+  {id:4,diff:'med',title:'Top N Per Group',q:'Top 3 revenue products per category',
+   opts:['ROW_NUMBER() OVER (PARTITION BY category ORDER BY revenue DESC) <= 3','TOP 3 per category','RANK() OVER () <= 3','LIMIT 3 GROUP BY'],
+   ans:0,exp:'ROW_NUMBER with PARTITION BY assigns rank within each category. Filter WHERE rn <= 3.',tags:['window','rank','partition']},
+  {id:5,diff:'hard',title:'Consecutive Login Days',q:'Find users with 7+ consecutive login days',
+   opts:['date - ROW_NUMBER() OVER(PARTITION BY user ORDER BY date) creates island groups','DATEADD tricks','COUNT consecutive','LEAD/LAG comparison'],
+   ans:0,exp:'Island detection: date minus row_number is constant for consecutive days. GROUP BY that island, HAVING COUNT >= 7.',tags:['window','islands','gaps']},
+  {id:6,diff:'easy',title:'Percent of Total',q:'Each product revenue as % of total. No subquery.',
+   opts:['revenue / SUM(revenue) OVER () * 100','revenue / (SELECT SUM) * 100','revenue / MAX(revenue)','PERCENT()'],
+   ans:0,exp:'SUM() OVER () without PARTITION BY computes grand total without collapsing rows.',tags:['window','percent']},
+  {id:7,diff:'med',title:'Median Without Function',q:'Calculate median salary without PERCENTILE_CONT (older DBs)',
+   opts:['AVG of two middle values using ROW_NUMBER() and COUNT(*)','ORDER BY LIMIT n/2','AVG()','MIDDLE()'],
+   ans:0,exp:'Find middle row(s) using ROW_NUMBER. Average the middle 1-2 rows for even/odd counts.',tags:['window','median','advanced']},
+  {id:8,diff:'hard',title:'Cohort Retention',q:'30-day retention rate for users acquired in Jan 2024',
+   opts:['CTE with acquisition month, self-join on activity 30 days later, COUNT DISTINCT','Simple join','WHERE date_diff < 30','COHORT()'],
+   ans:0,exp:'Define cohort via acquisition date, join to activity table on user_id with date window. Divide retained by acquired.',tags:['cohort','retention','cte']},
+];
+
+const PYTHON_QUESTIONS=[
+  {id:1,diff:'easy',title:'Safe Division for CTR',q:'CTR = clicks/impressions. Some rows have 0 impressions. Return 0.0 safely.',
+   opts:['clicks/imp if imp else 0.0','clicks/imp','try/except ZeroDivisionError','clicks//imp'],
+   ans:0,exp:'"if imp else" uses 0 as falsy. Clean, Pythonic, and avoids try/except overhead.',tags:['defensive','math']},
+  {id:2,diff:'easy',title:'Top N Word Frequency',q:'Most elegant stdlib way to get top 5 words from customer feedback?',
+   opts:['collections.Counter(words).most_common(5)','dict() with manual counting','sorted(set(words))','len(words)'],
+   ans:0,exp:'Counter.most_common(n) returns top n sorted by frequency. Clean and O(n log n).',tags:['stdlib','counter']},
+  {id:3,diff:'med',title:'Stream 20GB Log',q:'Process a 20GB log file. Cannot load all in memory.',
+   opts:['for line in open(path):','open(path).read().split()','pd.read_csv(path)','readlines()'],
+   ans:0,exp:'Iterating file object yields line-by-line. O(1) memory. Never load large files entirely.',tags:['io','streaming','memory']},
+  {id:4,diff:'med',title:'Vectorize 1M Rows',q:'df.apply(lambda r: r.a + r.b, axis=1) on 1M rows is slow. 100x speedup?',
+   opts:['df.a + df.b (vectorized)','Use .applymap()','for loop','Increase chunk size'],
+   ans:0,exp:'Vectorized ops run in C. apply(axis=1) iterates in Python. 100x+ speedup typical.',tags:['pandas','performance']},
+  {id:5,diff:'hard',title:'Race Condition',q:'Two threads each do counter += 1. Sometimes result is 1 not 2. Why?',
+   opts:['+= is read-modify-write, not atomic. GIL can release between ops.','Python is single-threaded','Only on Python 2','Only with > 100 threads'],
+   ans:0,exp:'+= compiles to 3 bytecodes. GIL can release between any two. Use threading.Lock().',tags:['concurrency','GIL']},
+  {id:6,diff:'med',title:'Deterministic A/B Buckets',q:'Assign users to A/B test bucket, same result every time.',
+   opts:['hash(user_id) % 2 == 0','random.random() < 0.5','np.random.choice([0,1])','uuid4()'],
+   ans:0,exp:'Hash is deterministic and stateless. Random produces different results per call.',tags:['hashing','ab-testing']},
+  {id:7,diff:'hard',title:'Mutable Default Bug',q:'def f(x, items=[]): items.append(x). What goes wrong?',
+   opts:['Default list shared across all calls. Use items=None then []','No bug, lists are mutable','Use tuple default','Use list()'],
+   ans:0,exp:'Default args evaluated once at function definition, not per call. Classic Python gotcha.',tags:['gotchas','defaults']},
+  {id:8,diff:'med',title:'Chunked CSV Processing',q:'10M row CSV. Process in 50K-row chunks. Pandas pattern?',
+   opts:['for chunk in pd.read_csv(f, chunksize=50000):','pd.read_csv(f).chunks(50000)','np.array_split','pd.read_csv(f, nrows=50000)'],
+   ans:0,exp:'chunksize returns an iterator of DataFrames. Memory-efficient for large files.',tags:['pandas','chunking']},
+];
+
+const ML_QUESTIONS=[
+  {id:1,diff:'med',title:'Class Imbalance: Fraud (1% positive)',q:'Training a fraud model. 99% negative class. AUC = 0.95. Is your model good?',
+   opts:['AUC alone is misleading. Check precision-recall curve and business cost matrix.','Yes, 0.95 is excellent','Use SMOTE immediately','Increase positive weight'],
+   ans:0,exp:'A model predicting all negatives gets 99% accuracy. Focus on PR-AUC, F1, and cost-of-FN vs cost-of-FP.',tags:['evaluation','imbalance']},
+  {id:2,diff:'hard',title:'Feature Leakage Detection',q:'Model has 0.99 AUC in training, 0.61 in production. Most likely cause?',
+   opts:['Feature leakage: a feature uses future information unavailable at prediction time','Overfitting - use regularization','Need more training data','Wrong model family'],
+   ans:0,exp:'Near-perfect train, poor prod = leakage. Common examples: using target-derived features or post-event data.',tags:['leakage','debugging']},
+  {id:3,diff:'med',title:'When to Use XGBoost vs Neural Net',q:'Tabular data, 500K rows, 40 features, structured. Which model?',
+   opts:['XGBoost/LightGBM — tree models win 80% of tabular problems','Neural network, always better','Linear regression first','SVM'],
+   ans:0,exp:'Tree-based models dominate structured/tabular data. NNs excel at unstructured (images, text, audio).',tags:['model-selection','xgboost']},
+  {id:4,diff:'hard',title:'Calibration',q:'Your churn model has AUC 0.88. A model from a vendor claims same AUC. How to choose?',
+   opts:['Check calibration: predicted probabilities should match actual rates. Better-calibrated model is more useful operationally.','Always pick lower AUC if from vendor','Use accuracy','Pick the smaller model'],
+   ans:0,exp:'Calibration determines if P(churn)=0.7 means 70% will actually churn. Critical for threshold-based decisions.',tags:['calibration','evaluation']},
+];
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+function App(){
+  const [page,setPage]=useState('onboard');
+  const [userPath,setUserPath]=useState(null);
+  const [userData,setUserData]=useState({
+    sqlDone:37,pyDone:18,phaseDone:[true,false,false,false],
+    projectsDone:[],tasksDone:{},quizScores:{sql:72,py:65,ml:80},
+    linkedinPosts:12,dmsSent:45,weeklyTests:[85,72,90],
+    skills:{SQL:68,Python:55,Statistics:42,ML:30,Deployment:15,Domain:20},
+    readiness:42,incomeNow:800000,incomePotential:4500000,
+    mode:'fulltime'
+  });
+  const [modal,setModal]=useState(null);
+
+  const selectPath=(pathId)=>{setUserPath(pathId);setPage('dashboard')};
+  const nav=(p)=>setPage(p);
+  const pathInfo=userPath?PATHS[userPath]:null;
+
+  if(page==='onboard') return <OnboardScreen onSelect={selectPath}/>;
+  return (
+    <div className="app">
+      <Sidebar current={page} nav={nav} pathInfo={pathInfo}/>
+      <div className="main">
+        <Topbar page={page} pathInfo={pathInfo}/>
+        <div className="content page-enter" key={page}>
+          {page==='dashboard'&&<Dashboard userData={userData} pathInfo={pathInfo} setPage={nav} setModal={setModal}/>}
+          {page==='phases'&&<PhasesPage userData={userData} setUserData={setUserData} pathInfo={pathInfo}/>}
+          {page==='projects'&&<ProjectsPage setModal={setModal}/>}
+          {page==='quiz'&&<QuizPage userData={userData} setUserData={setUserData}/>}
+          {page==='testing'&&<TestingPage userData={userData}/>}
+          {page==='income'&&<IncomePage userData={userData} pathInfo={pathInfo}/>}
+          {page==='schedule'&&<SchedulePage userData={userData} setUserData={setUserData}/>}
+          {page==='network'&&<NetworkPage userData={userData} setUserData={setUserData}/>}
+        </div>
+      </div>
+      {modal&&<Modal modal={modal} onClose={()=>setModal(null)}/>}
+    </div>
+  );
+}
+
+// ─── ONBOARD ──────────────────────────────────────────────────────────────────
+function OnboardScreen({onSelect}){
+  const [hovered,setHovered]=useState(null);
+  return(
+    <div className="path-selector">
+      <div style={{maxWidth:760,margin:'0 auto'}}>
+        <div className="hero-tag">₹1 CRORE DATA SCIENCE ENGINE</div>
+        <h1 className="hero-title">
+          This is not a course.<br/>
+          <span className="grad-g">It's a career weapon.</span>
+        </h1>
+        <p className="hero-sub">A 2–4 year execution system engineered to produce ₹50L–₹1Cr+ data professionals. No tutorials. No theory dumps. Just systems, projects, and outcomes.</p>
+        <div className="alert alert-y" style={{maxWidth:600,margin:'0 auto 8px',textAlign:'left'}}>
+          <span className="alert-icon">⚠️</span>
+          <span><strong>Honest math:</strong> ₹1 Cr in 2-4 years requires stacking 2-3 income streams or landing remote/FAANG. Treat this like a job, not a hobby.</span>
+        </div>
+      </div>
+      <div style={{margin:'8px 0 16px',font:'700 13px var(--fm)',color:'var(--t3)',letterSpacing:'2px',textTransform:'uppercase'}}>SELECT YOUR CAREER PATH</div>
+      <div className="path-grid">
+        {Object.values(PATHS).map(p=>(
+          <div key={p.id} className={`path-card path-${p.id.toLowerCase()}`} onClick={()=>onSelect(p.id)} onMouseEnter={()=>setHovered(p.id)} onMouseLeave={()=>setHovered(null)}
+            style={{borderColor:hovered===p.id?p.color+'66':''}}>
+            <span className="path-emoji">{p.emoji}</span>
+            <div className="path-name">{p.name}</div>
+            <div className="path-stack font-mono">{p.stack}</div>
+            <p className="path-desc">{p.desc}</p>
+            <div className="flex items-center justify-between">
+              <span className="path-range" style={{color:p.color}}>{p.range}</span>
+              <span className="badge" style={{background:`rgba(${p.colorRgb},.1)`,borderColor:`rgba(${p.colorRgb},.3)`,color:p.color}}>Select →</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p style={{marginTop:32,fontSize:12,color:'var(--t3)',fontFamily:'var(--fm)'}}>You can change your path at any time from the dashboard</p>
+    </div>
+  );
+}
+
+// ─── SIDEBAR ──────────────────────────────────────────────────────────────────
+function Sidebar({current,nav,pathInfo}){
+  const items=[
+    {id:'dashboard',icon:'⬡',label:'Hub'},
+    {id:'phases',icon:'◈',label:'Phases'},
+    {id:'projects',icon:'◻',label:'Projects'},
+    {id:'quiz',icon:'◆',label:'Practice'},
+    {id:'testing',icon:'⏱',label:'Tests'},
+    {id:'income',icon:'₹',label:'Income'},
+    {id:'schedule',icon:'◎',label:'Daily'},
+    {id:'network',icon:'⬡',label:'Network'},
+  ];
+  return(
+    <div className="sidebar">
+      <div className="logo-mark" onClick={()=>nav('dashboard')}>
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="18,2 34,12 34,30 18,34 2,30 2,12" stroke="#00ff88" strokeWidth="1.5" fill="none"/>
+          <polygon points="18,8 28,14 28,26 18,30 8,26 8,14" stroke="#00d4ff" strokeWidth="1" fill="none" opacity=".6"/>
+          <circle cx="18" cy="18" r="4" fill="#bf00ff" opacity=".8"/>
+        </svg>
+      </div>
+      {items.map((item,i)=>(
+        <div key={item.id} className={`nav-item${current===item.id?' active':''}`} onClick={()=>nav(item.id)}>
+          <span className="nav-icon">{item.icon}</span>
+          <span className="nav-label">{item.label}</span>
+          <span className="nav-tooltip">{item.id.charAt(0).toUpperCase()+item.id.slice(1)}</span>
+          {i===4&&<div className="nav-div" style={{margin:'6px 0'}}/>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── TOPBAR ───────────────────────────────────────────────────────────────────
+function Topbar({page,pathInfo}){
+  const titles={dashboard:'Control Hub',phases:'Execution Phases',projects:'Project Arsenal',quiz:'Practice Engine',testing:'Testing System',income:'Income Simulator',schedule:'Daily Execution',network:'Networking Engine'};
+  return(
+    <div className="topbar">
+      <div className="topbar-title">₹1Cr ENGINE</div>
+      <div className="topbar-path">
+        <span style={{color:'var(--border2)'}}>/</span>
+        <span>{titles[page]||page}</span>
+      </div>
+      <div className="topbar-sep"/>
+      {pathInfo&&(
+        <div className="path-chip">
+          <div className="path-dot" style={{background:pathInfo.color,boxShadow:`0 0 6px ${pathInfo.color}`}}/>
+          {pathInfo.emoji} {pathInfo.name}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function Dashboard({userData,pathInfo,setPage,setModal}){
+  const {skills,readiness,incomeNow,incomePotential,sqlDone,pyDone,phaseDone,weeklyTests}=userData;
+  const phasesDoneCount=phaseDone.filter(Boolean).length;
+  return(
+    <div>
+      <div className="section">
+        <div className="hero-tag">CONTROL CENTER</div>
+        <h1 className="hero-title" style={{fontSize:'clamp(28px,4vw,48px)'}}>
+          {pathInfo?<><span style={{color:pathInfo.color}}>{pathInfo.emoji} {pathInfo.name}</span> Track</>:'Your Dashboard'}
+        </h1>
+        {pathInfo&&<p style={{color:'var(--t2)',fontSize:14,fontFamily:'var(--fm)',marginTop:8}}>{pathInfo.goal}</p>}
+      </div>
+
+      {/* STATS ROW */}
+      <div className="g4 mb-24">
+        <div className="stat-card stat-card-g">
+          <div className="stat-value text-g">{readiness}%</div>
+          <div className="stat-label">Job Readiness</div>
+          <div className="prog-bar mt-12"><div className="prog-fill prog-fill-g" style={{width:readiness+'%'}}/></div>
+        </div>
+        <div className="stat-card stat-card-p">
+          <div className="stat-value" style={{fontSize:28,background:'linear-gradient(135deg,#ffcc00,#ff6b00)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>₹{(incomeNow/100000).toFixed(1)}L</div>
+          <div className="stat-label">Current Target</div>
+          <div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--g)',marginTop:8}}>→ ₹{(incomePotential/100000).toFixed(0)}L potential</div>
+        </div>
+        <div className="stat-card stat-card-y">
+          <div className="stat-value text-c">{phasesDoneCount}/4</div>
+          <div className="stat-label">Phases Complete</div>
+          <div className="prog-bar mt-12"><div className="prog-fill" style={{width:(phasesDoneCount/4*100)+'%',background:'linear-gradient(90deg,var(--c),var(--p))'}}/></div>
+        </div>
+        <div className="stat-card stat-card-c">
+          <div className="stat-value text-y">{weeklyTests[weeklyTests.length-1]||0}</div>
+          <div className="stat-label">Last Test Score</div>
+          <div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)',marginTop:8}}>avg: {Math.round(weeklyTests.reduce((a,b)=>a+b,0)/weeklyTests.length)}%</div>
+        </div>
+      </div>
+
+      {/* SKILLS + READINESS */}
+      <div className="g2 mb-24">
+        <div className="card p-24">
+          <div className="sec-eyebrow">Skill Radar</div>
+          <h3 style={{marginBottom:20,fontFamily:'var(--fh)'}}>Skill Levels</h3>
+          {Object.entries(skills).map(([k,v])=>(
+            <div className="skill-row" key={k}>
+              <div className="skill-name">{k}</div>
+              <div className="skill-bar">
+                <div className="skill-fill" style={{width:v+'%',background:v>60?'var(--g)':v>35?'var(--c)':'var(--r)'}}/>
+              </div>
+              <div className="skill-pct">{v}%</div>
+            </div>
+          ))}
+        </div>
+        <div className="card p-24">
+          <div className="sec-eyebrow">Next Actions</div>
+          <h3 style={{marginBottom:20,fontFamily:'var(--fh)'}}>Priority Queue</h3>
+          {[
+            {icon:'🔴',text:'Complete SQL problem #38-50 on DataLemur',action:'Practice',page:'quiz'},
+            {icon:'🟡',text:'Build EDA notebook on Olist dataset',action:'Phase 1',page:'phases'},
+            {icon:'🟢',text:'Post LinkedIn insight from your last project',action:'Network',page:'network'},
+            {icon:'⚪',text:'Take this week\'s mock interview test',action:'Test',page:'testing'},
+          ].map((item,i)=>(
+            <div key={i} className="checklist-item" style={{cursor:'pointer'}} onClick={()=>setPage(item.page)}>
+              <span style={{fontSize:16,flexShrink:0,marginTop:2}}>{item.icon}</span>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,color:'var(--t1)'}}>{item.text}</div>
+                <div style={{fontSize:10,fontFamily:'var(--fm)',color:'var(--t3)',marginTop:3}}>{item.action} →</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* PHASE OVERVIEW */}
+      <div className="mb-24">
+        <div className="flex items-center justify-between mb-16">
+          <h3 style={{fontFamily:'var(--fh)'}}>Execution Phases</h3>
+          <button className="btn btn-sm btn-g" onClick={()=>setPage('phases')}>Open Full System →</button>
+        </div>
+        <div className="g4">
+          {PHASES.map((ph,i)=>(
+            <div key={ph.id} className="card p-20 card-glow-g" style={{borderColor:phaseDone[i]?ph.color+'44':''}}>
+              <div className="flex items-center justify-between mb-12">
+                <span style={{fontFamily:'var(--fm)',fontSize:10,color:ph.color,letterSpacing:1}}>{ph.num}</span>
+                {phaseDone[i]&&<span className="badge badge-g">Done</span>}
+              </div>
+              <div style={{fontFamily:'var(--fh)',fontSize:16,fontWeight:800,marginBottom:4}}>{ph.label}</div>
+              <div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)'}}>{ph.months}</div>
+              <div className="prog-bar mt-12" style={{height:3}}>
+                <div className="prog-fill prog-fill-g" style={{width:phaseDone[i]?'100%':i===1?'40%':'0%'}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* PROJECT STATUS */}
+      <div>
+        <div className="flex items-center justify-between mb-16">
+          <h3 style={{fontFamily:'var(--fh)'}}>Project Arsenal</h3>
+          <button className="btn btn-sm btn-p" onClick={()=>setPage('projects')}>View All Projects →</button>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
+          {PROJECTS.slice(0,4).map(p=>(
+            <div key={p.id} className="card p-20" style={{borderLeft:`3px solid ${p.color}`}}>
+              <div className="flex items-center gap-8 mb-8">
+                <span style={{fontSize:20}}>{p.emoji}</span>
+                <span style={{fontFamily:'var(--fh)',fontSize:14,fontWeight:700}}>{p.title}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="badge" style={{fontSize:9,background:`rgba(${p.color.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16)).join(',')},0.1)`,color:p.color,borderColor:p.color+'44'}}>{p.difficulty}</span>
+                <span style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)'}}>{p.stack.slice(0,2).join(' · ')}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PHASES PAGE ──────────────────────────────────────────────────────────────
+function PhasesPage({userData,setUserData,pathInfo}){
+  const [open,setOpen]=useState(1);
+  const [tasksDone,setTasksDone]=useState(userData.tasksDone||{});
+  const toggle=(phId,taskIdx)=>{
+    const key=`${phId}-${taskIdx}`;
+    const newDone={...tasksDone,[key]:!tasksDone[key]};
+    setTasksDone(newDone);
+    setUserData(u=>({...u,tasksDone:newDone}));
+  };
+  return(
+    <div>
+      <div className="section">
+        <div className="sec-eyebrow">Execution System</div>
+        <h1 className="sec-title">Phase-Based <span className="grad-g">Roadmap</span></h1>
+        <p className="sec-sub">4 phases, 24–48 months. Phases overlap. Start projects in Phase 1. Start networking in Phase 2. Don't treat them strictly sequential.</p>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:16}}>
+        {PHASES.map(ph=>{
+          const done=ph.tasks.filter((_,i)=>tasksDone[`${ph.id}-${i}`]).length;
+          const pct=Math.round(done/ph.tasks.length*100);
+          return(
+            <div className="phase-block" key={ph.id} style={{borderColor:open===ph.id?ph.color+'44':''}}>
+              <div className="phase-header" onClick={()=>setOpen(open===ph.id?null:ph.id)}>
+                <div className="phase-num" style={{background:`rgba(${ph.color.replace(/[^,\d]/g,'')||'0,255,136'},0.12)`,color:ph.color,fontSize:16,fontFamily:'var(--fh)'}}>{ph.num}</div>
+                <div style={{flex:1}}>
+                  <div className="flex items-center gap-12 mb-4">
+                    <span style={{fontFamily:'var(--fh)',fontSize:20,fontWeight:800}}>{ph.label}</span>
+                    <span className="badge" style={{background:`rgba(0,0,0,.3)`,borderColor:ph.color+'55',color:ph.color}}>{ph.months}</span>
+                    {pct===100&&<span className="badge badge-g">COMPLETE</span>}
+                  </div>
+                  <div style={{fontSize:13,color:'var(--t2)'}}>{ph.goal}</div>
+                </div>
+                <div style={{textAlign:'right',flexShrink:0}}>
+                  <div style={{fontFamily:'var(--fh)',fontSize:22,fontWeight:800,color:ph.color}}>{pct}%</div>
+                  <div style={{fontSize:10,fontFamily:'var(--fm)',color:'var(--t3)'}}>{done}/{ph.tasks.length} tasks</div>
+                </div>
+                <div style={{fontSize:20,color:'var(--t3)',marginLeft:8}}>{open===ph.id?'▴':'▾'}</div>
+              </div>
+              {open===ph.id&&(
+                <div className="phase-body">
+                  <div className="prog-bar mb-20" style={{height:6}}>
+                    <div className="prog-fill" style={{width:pct+'%',background:`linear-gradient(90deg,${ph.color},var(--c))`}}/>
+                  </div>
+                  <div className="g2 mb-24">
+                    <div>
+                      <div className="sec-eyebrow mb-12">Core Skills</div>
+                      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                        {ph.skills.map(s=><span key={s} className="badge badge-c">{s}</span>)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="sec-eyebrow mb-12">Deliverables</div>
+                      {ph.deliverables.map((d,i)=>(
+                        <div key={i} className="flex gap-8 mb-8 items-center">
+                          <span style={{color:'var(--g)',fontFamily:'var(--fm)',fontSize:12,flexShrink:0}}>✓</span>
+                          <span style={{fontSize:13,color:'var(--t1)'}}>{d}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="sec-eyebrow mb-12">Task Checklist</div>
+                  {ph.tasks.map((task,i)=>{
+                    const done=tasksDone[`${ph.id}-${i}`];
+                    return(
+                      <div key={i} className="checklist-item" style={{cursor:'pointer'}} onClick={()=>toggle(ph.id,i)}>
+                        <div className={`check-box${done?' checked':''}`}>{done&&'✓'}</div>
+                        <div className={`check-label${done?' done':''}`}>{task.t}</div>
+                        {task.link&&<a href={task.link} target="_blank" onClick={e=>e.stopPropagation()} style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--c)',flexShrink:0}}>↗</a>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── PROJECTS PAGE ────────────────────────────────────────────────────────────
+function ProjectsPage({setModal}){
+  const [filter,setFilter]=useState('All');
+  const cats=['All','Analytics','ML Engineering','Business Intelligence','Advanced Analytics','LLM / AI'];
+  const filtered=filter==='All'?PROJECTS:PROJECTS.filter(p=>p.category===filter);
+  return(
+    <div>
+      <div className="section">
+        <div className="sec-eyebrow">High-Impact Systems</div>
+        <h1 className="sec-title">Project <span className="grad-p">Arsenal</span></h1>
+        <p className="sec-sub">Zero Kaggle basics. These projects look like real work, not homework. Every project includes business framing, ₹ impact, and deployment instructions.</p>
+        <div className="alert alert-r mt-16" style={{maxWidth:600}}>
+          <span className="alert-icon">🚫</span>
+          <strong>Rule:</strong> Skip Titanic, Iris, Boston Housing, MNIST. They scream "tutorial follower" to every hiring manager.
+        </div>
+      </div>
+      <div className="flex gap-8 mb-24 flex-wrap">
+        {cats.map(c=><button key={c} className={`btn btn-sm ${filter===c?'btn-primary':'btn-ghost'}`} onClick={()=>setFilter(c)}>{c}</button>)}
+      </div>
+      <div className="g-proj">
+        {filtered.map(p=>(
+          <ProjectCard key={p.id} project={p} onOpen={()=>setModal({type:'project',data:p})}/>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProjectCard({project:p,onOpen}){
+  return(
+    <div className="proj-card" onClick={onOpen} style={{borderTop:`3px solid ${p.color}`}}>
+      <div className="proj-header">
+        <div className="flex items-center justify-between mb-10">
+          <span style={{fontSize:32}}>{p.emoji}</span>
+          <div className="flex gap-8">
+            <span className="badge" style={{fontSize:9,background:`rgba(0,0,0,.3)`,color:'var(--t2)',borderColor:'var(--border)'}}>{p.difficulty}</span>
+            <span className="badge badge-c">{p.category}</span>
+          </div>
+        </div>
+        <h3 style={{fontFamily:'var(--fh)',fontSize:18,marginBottom:8}}>{p.title}</h3>
+        <p style={{fontSize:13,color:'var(--t2)',lineHeight:1.6}}>{p.business}</p>
+      </div>
+      <div className="proj-body">
+        <div className="sec-eyebrow mb-8">Stack</div>
+        <div className="flex gap-6 flex-wrap mb-16">
+          {p.stack.map(s=><span key={s} className="badge badge-g" style={{fontSize:9}}>{s}</span>)}
+        </div>
+        <div className="sec-eyebrow mb-8">Execution Steps</div>
+        {p.steps.slice(0,3).map((s,i)=>(
+          <div key={i} className="flex gap-10 mb-6 items-start">
+            <span style={{fontFamily:'var(--fm)',fontSize:10,color:p.color,flexShrink:0,marginTop:3}}>0{i+1}</span>
+            <span style={{fontSize:12,color:'var(--t2)',lineHeight:1.5}}>{s}</span>
+          </div>
+        ))}
+        {p.steps.length>3&&<div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)',marginTop:4}}>+{p.steps.length-3} more steps →</div>}
+      </div>
+      <div className="proj-footer">
+        <div className="impact-pill">💰 {p.impact}</div>
+        <button className="btn btn-sm btn-ghost">View Full Guide →</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── QUIZ PAGE ────────────────────────────────────────────────────────────────
+function QuizPage({userData,setUserData}){
+  const [tab,setTab]=useState('sql');
+  const [modal,setModal]=useState(null);
+  const [done,setDone]=useState({sql:new Set(),py:new Set(),ml:new Set()});
+  const qs={sql:SQL_QUESTIONS,py:PYTHON_QUESTIONS,ml:ML_QUESTIONS};
+  const current=qs[tab];
+  return(
+    <div>
+      <div className="section">
+        <div className="sec-eyebrow">Practice Engine</div>
+        <h1 className="sec-title">Skill <span className="grad-g">Drills</span></h1>
+        <p className="sec-sub">Interview-pattern questions with business context and instant feedback. Practice until the answers are automatic.</p>
+      </div>
+      <div className="flex items-center justify-between mb-20">
+        <div className="tabs">
+          {['sql','py','ml'].map(t=>(
+            <div key={t} className={`tab ${tab===t?'active':''}`} onClick={()=>setTab(t)}>
+              {t==='sql'?'SQL (40+)':t==='py'?'Python (40+)':'ML Cases (20+)'}
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-12 items-center">
+          <span style={{fontFamily:'var(--fm)',fontSize:11,color:'var(--t3)'}}>{done[tab].size}/{current.length} solved</span>
+          <div className="prog-bar" style={{width:120}}><div className="prog-fill prog-fill-g" style={{width:(done[tab].size/current.length*100)+'%'}}/></div>
+        </div>
+      </div>
+      <div className="qlist">
+        {current.map(q=>(
+          <div key={q.id} className={`quiz-q ${done[tab].has(q.id)?'done':''}`} onClick={()=>setModal(q)}>
+            <div className="q-num">#{String(q.id).padStart(2,'0')}</div>
+            <div className="q-text">{q.title}</div>
+            <div className="flex gap-8 items-center">
+              <span className={`badge ${q.diff==='easy'?'badge-g':q.diff==='med'?'badge-y':'badge-r'}`}>{q.diff}</span>
+              {q.tags.slice(0,2).map(t=><span key={t} style={{fontFamily:'var(--fm)',fontSize:9,color:'var(--t3)',padding:'2px 6px',border:'1px solid var(--border)',borderRadius:3}}>{t}</span>)}
+              {done[tab].has(q.id)&&<span style={{color:'var(--g)',fontSize:14}}>✓</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+      {modal&&<QuizModal q={modal} onClose={()=>setModal(null)} onSolve={()=>{setDone(d=>({...d,[tab]:new Set([...d[tab],modal.id])}));setModal(null)}}/>}
+    </div>
+  );
+}
+
+function QuizModal({q,onClose,onSolve}){
+  const [selected,setSelected]=useState(null);
+  const [submitted,setSubmitted]=useState(false);
+  const submit=(i)=>{if(submitted)return;setSelected(i);setSubmitted(true)};
+  const correct=selected===q.ans;
+  return(
+    <div className="modal" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal-box">
+        <div className="modal-head">
+          <div>
+            <div className="flex gap-10 mb-8">
+              <span className={`badge ${q.diff==='easy'?'badge-g':q.diff==='med'?'badge-y':'badge-r'}`}>{q.diff}</span>
+              {q.tags.map(t=><span key={t} style={{fontFamily:'var(--fm)',fontSize:9,color:'var(--t3)',padding:'2px 6px',border:'1px solid var(--border)',borderRadius:3}}>{t}</span>)}
+            </div>
+            <h2 style={{fontFamily:'var(--fh)',fontSize:20}}>{q.title}</h2>
+          </div>
+          <button className="btn btn-sm btn-ghost" onClick={onClose}>✕ Close</button>
+        </div>
+        <div className="modal-body">
+          <div style={{padding:'16px 20px',background:'var(--s1)',border:'1px solid var(--border)',borderLeft:'3px solid var(--c)',borderRadius:8,marginBottom:20}}>
+            <div style={{fontFamily:'var(--fm)',fontSize:10,color:'var(--c)',letterSpacing:2,marginBottom:8}}>QUESTION</div>
+            <div style={{fontSize:15,color:'var(--t0)',lineHeight:1.7}}>{q.q}</div>
+          </div>
+          {q.opts.map((opt,i)=>(
+            <button key={i} className={`q-opt ${submitted?(i===q.ans?'correct':i===selected&&!correct?'wrong':'dis'):'dis'}`} onClick={()=>submit(i)} style={{cursor:submitted?'default':'pointer'}}>
+              <div className="opt-key">{String.fromCharCode(65+i)}</div>
+              <span>{opt}</span>
+              {submitted&&i===q.ans&&<span style={{marginLeft:'auto',color:'var(--g)',fontSize:14}}>✓</span>}
+            </button>
+          ))}
+          {submitted&&(
+            <div className={`feedback ${correct?'feedback-correct':'feedback-wrong'}`}>
+              <div className="feedback-title" style={{color:correct?'var(--g)':'var(--r)'}}>{correct?'✓ Correct!':'✗ Incorrect'}</div>
+              <div className="feedback-exp">{q.exp}</div>
+              <div className="flex gap-12 mt-16">
+                {correct&&<button className="btn btn-sm btn-primary" onClick={onSolve}>Mark Done & Continue →</button>}
+                <button className="btn btn-sm btn-ghost" onClick={onClose}>Try Another</button>
+              </div>
+            </div>
+          )}
+          {!submitted&&<button className="btn btn-sm btn-ghost mt-16" onClick={()=>submit(-1)} style={{opacity:.5}}>Skip question</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── TESTING PAGE ─────────────────────────────────────────────────────────────
+function TestingPage({userData}){
+  const [tab,setTab]=useState('weekly');
+  const [timerActive,setTimerActive]=useState(false);
+  const [timeLeft,setTimeLeft]=useState(90*60);
+  const [testStarted,setTestStarted]=useState(false);
+  const timerRef=useRef(null);
+  const startTest=()=>{setTestStarted(true);setTimerActive(true)};
+  useEffect(()=>{
+    if(timerActive&&timeLeft>0){timerRef.current=setTimeout(()=>setTimeLeft(t=>t-1),1000);}
+    else if(timeLeft===0){setTimerActive(false);}
+    return()=>clearTimeout(timerRef.current);
+  },[timerActive,timeLeft]);
+  const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  return(
+    <div>
+      <div className="section">
+        <div className="sec-eyebrow">Testing System</div>
+        <h1 className="sec-title">Mock <span className="grad-g">Interviews</span></h1>
+        <p className="sec-sub">Weekly tests, monthly mock interviews, and project evaluation checklists. Simulate real interview conditions.</p>
+      </div>
+      <div className="tabs mb-24">
+        {['weekly','monthly','checklist'].map(t=>(
+          <div key={t} className={`tab ${tab===t?'active':''}`} onClick={()=>setTab(t)}>
+            {t==='weekly'?'Weekly Test':t==='monthly'?'Monthly Mock':'Project Eval'}
+          </div>
+        ))}
+      </div>
+      {tab==='weekly'&&(
+        <div>
+          {!testStarted?(
+            <div style={{textAlign:'center',padding:'60px 40px'}}>
+              <div style={{fontFamily:'var(--fh)',fontSize:60,marginBottom:16}}>⏱</div>
+              <h2 style={{fontFamily:'var(--fh)',fontSize:32,marginBottom:12}}>Weekly Test Mode</h2>
+              <p style={{color:'var(--t2)',marginBottom:8}}>5 SQL + 3 Python + 1 Case Study</p>
+              <p style={{fontFamily:'var(--fm)',fontSize:12,color:'var(--t3)',marginBottom:32}}>90 MINUTES · TIMED · NO PAUSING</p>
+              <div className="g3 mb-32" style={{maxWidth:600,margin:'0 auto 32px'}}>
+                <div className="card p-20 text-center"><div style={{fontSize:28,fontFamily:'var(--fh)',fontWeight:800,color:'var(--g)'}}>5</div><div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)'}}>SQL QUESTIONS</div></div>
+                <div className="card p-20 text-center"><div style={{fontSize:28,fontFamily:'var(--fh)',fontWeight:800,color:'var(--c)'}}>3</div><div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)'}}>PYTHON PROBLEMS</div></div>
+                <div className="card p-20 text-center"><div style={{fontSize:28,fontFamily:'var(--fh)',fontWeight:800,color:'var(--p)'}}>1</div><div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)'}}>CASE STUDY</div></div>
+              </div>
+              <button className="btn btn-primary btn-lg" onClick={startTest}>Start Weekly Test</button>
+            </div>
+          ):(
+            <div>
+              <div style={{textAlign:'center',marginBottom:32}}>
+                <div className={`test-timer${timeLeft<600?' warning':''}`}>{fmt(timeLeft)}</div>
+                <div style={{fontFamily:'var(--fm)',fontSize:11,color:'var(--t3)',marginTop:4}}>REMAINING</div>
+              </div>
+              <div className="alert alert-y mb-24">
+                <span className="alert-icon">💡</span>
+                In a real weekly test, questions would be dynamically pulled. This is the framework — add your question bank here.
+              </div>
+              <div className="g2">
+                {['SQL Round','Python Round','Case Study'].slice(0,2).concat(['Case Study']).map((round,i)=>(
+                  <div key={i} className="card p-24">
+                    <div style={{fontFamily:'var(--fm)',fontSize:10,color:'var(--t3)',letterSpacing:2,marginBottom:12}}>{round.toUpperCase()}</div>
+                    <p style={{fontSize:13,color:'var(--t2)'}}>Questions from your practice bank, randomly selected per difficulty weight.</p>
+                    <button className="btn btn-sm btn-g mt-16">Answer Questions →</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="hr"/>
+          <div className="sec-eyebrow mb-16">Past Scores</div>
+          <div className="flex gap-12 flex-wrap">
+            {userData.weeklyTests.map((score,i)=>(
+              <div key={i} className="card p-16 text-center" style={{minWidth:100}}>
+                <div style={{fontFamily:'var(--fh)',fontSize:24,fontWeight:800,color:score>=80?'var(--g)':score>=60?'var(--y)':'var(--r)'}}>{score}</div>
+                <div style={{fontSize:10,fontFamily:'var(--fm)',color:'var(--t3)'}}>WEEK {i+1}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {tab==='monthly'&&(
+        <div>
+          <div className="g2 mb-24">
+            {[
+              {title:'SQL / Python Round',icon:'💻',desc:'45 mins. Mix of hard SQL and Python problems. Mirrors actual screening rounds at product companies.',points:['Window functions + complex CTEs','Pandas optimization questions','Debugging challenges']},
+              {title:'Case Study Round',icon:'📊',desc:'30 mins. Business scenario, define metrics, choose approach, present findings.',points:['Business problem framing','Metric definition','SQL + analysis plan']},
+              {title:'Behavioral Round',icon:'🗣',desc:'15 mins. STAR format. Your projects, your impact, your reasoning.',points:['Why this project?','What would you do differently?','Explain to a non-technical PM']},
+            ].map((r,i)=>(
+              <div key={i} className="card p-24">
+                <div style={{fontSize:32,marginBottom:12}}>{r.icon}</div>
+                <h3 style={{fontFamily:'var(--fh)',marginBottom:8}}>{r.title}</h3>
+                <p style={{fontSize:13,color:'var(--t2)',lineHeight:1.6,marginBottom:16}}>{r.desc}</p>
+                {r.points.map((p,j)=><div key={j} className="flex gap-8 mb-6"><span style={{color:'var(--c)',fontFamily:'var(--fm)',fontSize:12}}>→</span><span style={{fontSize:13,color:'var(--t1)'}}>{p}</span></div>)}
+                <button className="btn btn-sm btn-c mt-16">Start This Round →</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {tab==='checklist'&&(
+        <div>
+          <div className="sec-eyebrow mb-16">Before you call a project "done"</div>
+          <h3 style={{fontFamily:'var(--fh)',fontSize:24,marginBottom:24}}>Project Evaluation Checklist</h3>
+          {[
+            {label:'Business Impact Framing',questions:['Does the project solve a real ₹-valued problem?','Is the impact quantified? (% improvement, ₹ saved, scale handled)','Can a non-technical PM understand why it matters?']},
+            {label:'Technical Completeness',questions:['Is it deployed? (live URL, Docker, or API endpoint)','Does it have proper error handling and edge cases?','Is the code readable with proper documentation?']},
+            {label:'Explainability',questions:['Can you explain every modeling decision?','Have you addressed the "why XGBoost vs neural net?" question?','Do you have SHAP values or feature importance?']},
+            {label:'Stand-Out Element',questions:['Does it have the "stand-out move" from the project spec?','Is there something that 90% of candidates would NOT include?','Would a hiring manager remember this project in 30 days?']},
+          ].map((section,si)=>{
+            const [checks,setChecks]=useState(new Array(section.questions.length).fill(false));
+            return(
+              <div key={si} className="card p-24 mb-16">
+                <div style={{fontFamily:'var(--fh)',fontSize:16,fontWeight:700,marginBottom:16,color:'var(--c)'}}>{section.label}</div>
+                {section.questions.map((q,qi)=>(
+                  <div key={qi} className="checklist-item" onClick={()=>{const c=[...checks];c[qi]=!c[qi];setChecks(c)}} style={{cursor:'pointer'}}>
+                    <div className={`check-box${checks[qi]?' checked':''}`}>{checks[qi]&&'✓'}</div>
+                    <div className={`check-label${checks[qi]?' done':''}`}>{q}</div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── INCOME PAGE ──────────────────────────────────────────────────────────────
+function IncomePage({userData,pathInfo}){
+  const [skills,setSkills]=useState({SQL:68,Python:55,ML:30,Deployment:15,Domain:20,Communication:50});
+  const calcIncome=()=>{
+    const avg=Object.values(skills).reduce((a,b)=>a+b,0)/Object.keys(skills).length;
+    if(avg<30) return {min:8,max:15,label:'Entry level analyst'};
+    if(avg<45) return {min:12,max:22,label:'Junior Data Analyst/Scientist'};
+    if(avg<60) return {min:20,max:35,label:'Mid-level Analyst / DS'};
+    if(avg<75) return {min:30,max:55,label:'Senior DS / ML Engineer'};
+    if(avg<88) return {min:45,max:80,label:'Lead / Staff DS'};
+    return {min:70,max:150,label:'Principal / FAANG / Remote'};
+  };
+  const inc=calcIncome();
+  return(
+    <div>
+      <div className="section">
+        <div className="sec-eyebrow">Income Simulator</div>
+        <h1 className="sec-title">Skill → <span className="grad-p">Income</span> Map</h1>
+        <p className="sec-sub">Adjust your skill levels to see how your earning potential changes. Every skill gap is an income gap.</p>
+      </div>
+      <div className="g2 mb-24">
+        <div className="card p-28" style={{textAlign:'center'}}>
+          <div style={{fontFamily:'var(--fm)',fontSize:10,color:'var(--t3)',letterSpacing:2,marginBottom:20}}>INCOME POTENTIAL RANGE</div>
+          <div className="rupee-callout">₹{inc.min}L–₹{inc.max}L</div>
+          <div style={{fontFamily:'var(--fm)',fontSize:12,color:'var(--t2)',marginTop:8}}>/year · {inc.label}</div>
+          <div className="hr"/>
+          <div style={{fontFamily:'var(--fm)',fontSize:11,color:'var(--t3)',marginBottom:8}}>PATH CEILING</div>
+          {pathInfo&&<div style={{fontFamily:'var(--fh)',fontSize:22,fontWeight:800,color:pathInfo.color}}>{pathInfo.range}</div>}
+          <div className="alert alert-g mt-20">
+            <span className="alert-icon">💡</span>
+            <span style={{fontSize:12}}>Domain specialization is the biggest unlock. Generalists earn ₹15–25L. Domain specialists earn ₹40L–1.5Cr.</span>
+          </div>
+        </div>
+        <div className="card p-28">
+          <div style={{fontFamily:'var(--fm)',fontSize:10,color:'var(--t3)',letterSpacing:2,marginBottom:20}}>ADJUST YOUR SKILLS</div>
+          {Object.entries(skills).map(([sk,val])=>(
+            <div key={sk} className="mb-16">
+              <div className="flex items-center justify-between mb-6">
+                <span style={{fontSize:13,fontFamily:'var(--fm)',color:'var(--t1)'}}>{sk}</span>
+                <span style={{fontSize:13,fontFamily:'var(--fh)',fontWeight:700,color:val>60?'var(--g)':val>35?'var(--y)':'var(--r)'}}>{val}%</span>
+              </div>
+              <input type="range" min="0" max="100" value={val} onChange={e=>setSkills(s=>({...s,[sk]:+e.target.value}))}
+                style={{width:'100%',accentColor:'var(--g)',cursor:'pointer'}}/>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="sec-eyebrow mb-16">Income Stacking Strategy</div>
+      <div className="g3">
+        {[
+          {source:'India Full-Time (FAANG/top product)',range:'₹45L – ₹1.2Cr CTC',note:'Includes RSUs/ESOPs. In-hand is 50–65% of CTC.',color:'var(--g)'},
+          {source:'Remote (US/EU Full-Time)',range:'$80K – $180K',note:'Hardest to land, biggest unlock. Need timezone overlap.',color:'var(--c)'},
+          {source:'Freelance / Consulting',range:'₹40–₹250/hr USD',note:'Scales with niche + proof. Slow first 12 months.',color:'var(--y)'},
+        ].map((row,i)=>(
+          <div key={i} className="card p-20" style={{borderLeft:`3px solid ${row.color}`}}>
+            <div style={{fontSize:12,color:'var(--t3)',marginBottom:8}}>{row.source}</div>
+            <div style={{fontFamily:'var(--fh)',fontSize:18,fontWeight:800,color:row.color,marginBottom:8}}>{row.range}</div>
+            <div style={{fontSize:12,color:'var(--t2)',lineHeight:1.6}}>{row.note}</div>
+          </div>
+        ))}
+      </div>
+      <div className="alert alert-y mt-20">
+        <span className="alert-icon">⚠️</span>
+        <strong>Honest math:</strong> Reaching ₹1 Cr/year purely on Indian salary takes 6–9 years for most. The 2–4 year path requires stacking 2–3 income streams or landing remote/FAANG. Plan accordingly.
+      </div>
+    </div>
+  );
+}
+
+// ─── SCHEDULE PAGE ────────────────────────────────────────────────────────────
+function SchedulePage({userData,setUserData}){
+  const [mode,setMode]=useState(userData.mode||'fulltime');
+  const [tasks,setTasks]=useState({});
+  const today=new Date().toLocaleDateString('en-IN',{weekday:'long',month:'short',day:'numeric'});
+  const fullSchedule=[
+    {time:'6:00–7:00',task:'SQL Practice — 5 problems on DataLemur',cat:'SQL'},
+    {time:'7:00–7:30',task:'Review yesterday\'s mistakes + notes',cat:'Review'},
+    {time:'9:00–10:30',task:'Project work: 1 focused building block',cat:'Build'},
+    {time:'10:30–11:00',task:'LinkedIn: post 1 insight or comment on 5 posts',cat:'Network'},
+    {time:'14:00–15:30',task:'Python practice or ML case study deep work',cat:'Python'},
+    {time:'20:00–21:00',task:'Read 1 DS blog post, take notes',cat:'Learn'},
+    {time:'21:00–21:30',task:'Tomorrow\'s plan: write 3 non-negotiable tasks',cat:'Plan'},
+  ];
+  const proSchedule=[
+    {time:'6:00–7:00',task:'SQL/Python practice — 3 problems only',cat:'SQL'},
+    {time:'7:00–8:00',task:'Project work: small executable chunk',cat:'Build'},
+    {time:'Lunch break',task:'LinkedIn: 1 post OR comment on 3 posts',cat:'Network'},
+    {time:'20:00–21:30',task:'Deep work: project or case study',cat:'Build'},
+    {time:'21:30–22:00',task:'Reading + plan tomorrow',cat:'Learn'},
+  ];
+  const schedule=mode==='fulltime'?fullSchedule:proSchedule;
+  const toggleTask=(i)=>setTasks(t=>({...t,[i]:!t[i]}));
+  const doneCount=Object.values(tasks).filter(Boolean).length;
+  return(
+    <div>
+      <div className="section">
+        <div className="sec-eyebrow">Daily Execution</div>
+        <h1 className="sec-title">Daily <span className="grad-g">System</span></h1>
+        <p className="sec-sub">Consistency beats intensity. A mediocre plan executed daily for 2 years beats a perfect plan followed for 3 weeks.</p>
+      </div>
+      <div className="flex items-center justify-between mb-24">
+        <div>
+          <div style={{fontFamily:'var(--fh)',fontSize:20,fontWeight:800}}>{today}</div>
+          <div style={{fontFamily:'var(--fm)',fontSize:11,color:'var(--t3)',marginTop:4}}>{doneCount}/{schedule.length} tasks completed</div>
+        </div>
+        <div className="tabs">
+          <div className={`tab${mode==='fulltime'?' active':''}`} onClick={()=>setMode('fulltime')}>Full-Time Learner</div>
+          <div className={`tab${mode==='working'?' active':''}`} onClick={()=>setMode('working')}>Working Professional</div>
+        </div>
+      </div>
+      <div className="prog-bar mb-24" style={{height:6}}>
+        <div className="prog-fill prog-fill-g" style={{width:(doneCount/schedule.length*100)+'%'}}/>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:10}}>
+        {schedule.map((item,i)=>(
+          <div key={i} className={`day-block${tasks[i]?' done':''}`} onClick={()=>toggleTask(i)} style={{cursor:'pointer'}}>
+            <div className="time-chip">{item.time}</div>
+            <span className={`badge ${item.cat==='SQL'?'badge-g':item.cat==='Build'?'badge-p':item.cat==='Network'?'badge-c':item.cat==='Python'?'badge-c':'badge-y'}`} style={{fontSize:8}}>{item.cat}</span>
+            <div style={{flex:1,fontSize:14,color:tasks[i]?'var(--t3)':'var(--t1)',textDecoration:tasks[i]?'line-through':'none'}}>{item.task}</div>
+            <div className={`task-check${tasks[i]?' checked':''}`}>{tasks[i]&&'✓'}</div>
+          </div>
+        ))}
+      </div>
+      <div className="g3 mt-32">
+        <div className="card p-20">
+          <div style={{fontFamily:'var(--fh)',fontSize:15,fontWeight:700,marginBottom:8,color:'var(--g)'}}>Weekly Target</div>
+          {['35 SQL problems solved','1 project milestone shipped','5 LinkedIn posts published','20 thoughtful DMs sent'].map((t,i)=>(
+            <div key={i} className="flex gap-8 mb-6"><span style={{color:'var(--g)',fontFamily:'var(--fm)',fontSize:12}}>→</span><span style={{fontSize:13,color:'var(--t2)'}}>{t}</span></div>
+          ))}
+        </div>
+        <div className="card p-20">
+          <div style={{fontFamily:'var(--fh)',fontSize:15,fontWeight:700,marginBottom:8,color:'var(--c)'}}>Monthly Milestone</div>
+          {['100 problems completed','1 full project shipped with deployment','Job readiness score up by 10%','Weekly test average ≥ 75%'].map((t,i)=>(
+            <div key={i} className="flex gap-8 mb-6"><span style={{color:'var(--c)',fontFamily:'var(--fm)',fontSize:12}}>→</span><span style={{fontSize:13,color:'var(--t2)'}}>{t}</span></div>
+          ))}
+        </div>
+        <div className="card p-20">
+          <div style={{fontFamily:'var(--fh)',fontSize:15,fontWeight:700,marginBottom:8,color:'var(--p)'}}>Non-Negotiables</div>
+          {['Solve at least 1 SQL problem daily','Post or engage on LinkedIn every day','Touch a project file every single day','Sleep 7+ hours (cognitive performance)'].map((t,i)=>(
+            <div key={i} className="flex gap-8 mb-6"><span style={{color:'var(--p)',fontFamily:'var(--fm)',fontSize:12}}>→</span><span style={{fontSize:13,color:'var(--t2)'}}>{t}</span></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── NETWORK PAGE ─────────────────────────────────────────────────────────────
+function NetworkPage({userData,setUserData}){
+  const [posts,setPosts]=useState(userData.linkedinPosts||0);
+  const [dms,setDms]=useState(userData.dmsSent||0);
+  const [connections,setConnections]=useState([
+    {name:'Priya Sharma',role:'Senior DS @ Swiggy',status:'Connected',emoji:'👩‍💻'},
+    {name:'Rahul Mehta',role:'ML Engineer @ CRED',status:'DM Sent',emoji:'👨‍💻'},
+    {name:'Ankita Joshi',role:'Analytics Lead @ Zomato',status:'Following',emoji:'👩‍💼'},
+  ]);
+  return(
+    <div>
+      <div className="section">
+        <div className="sec-eyebrow">Networking Engine</div>
+        <h1 className="sec-title">Personal <span className="grad-c">Brand</span> System</h1>
+        <p className="sec-sub">80% of ₹50L+ jobs come through referrals or warm intros, not job portals. Build your network before you need it.</p>
+      </div>
+      <div className="g4 mb-24">
+        <div className="stat-card stat-card-g">
+          <div className="stat-value text-c">{posts}</div>
+          <div className="stat-label">LinkedIn Posts</div>
+          <div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)',marginTop:6}}>Goal: 3/week</div>
+        </div>
+        <div className="stat-card stat-card-p">
+          <div className="stat-value text-g">{dms}</div>
+          <div className="stat-label">DMs Sent</div>
+          <div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)',marginTop:6}}>Goal: 20/week</div>
+        </div>
+        <div className="stat-card stat-card-y">
+          <div className="stat-value text-p">{connections.length}</div>
+          <div className="stat-label">Key Contacts</div>
+          <div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)',marginTop:6}}>Target companies</div>
+        </div>
+        <div className="stat-card stat-card-c">
+          <div className="stat-value text-y">{Math.round((posts/156)*100)}%</div>
+          <div className="stat-label">Content Streak</div>
+          <div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)',marginTop:6}}>vs 12-month goal</div>
+        </div>
+      </div>
+      <div className="g2 mb-24">
+        <div className="card p-24">
+          <div className="flex items-center justify-between mb-16">
+            <h3 style={{fontFamily:'var(--fh)'}}>Post Tracker</h3>
+            <button className="btn btn-sm btn-g" onClick={()=>setPosts(p=>p+1)}>+ Log Post</button>
+          </div>
+          <div className="alert alert-g mb-16">
+            <span className="alert-icon">📌</span>
+            <div style={{fontSize:12}}>Post 3x/week for 12 months. Consistency &gt; virality. Topics: case studies, mistakes you made, frameworks. Avoid generic "top 10 ML algorithms" posts.</div>
+          </div>
+          {[
+            {type:'Case Study Post',template:'I analyzed [X dataset] and found [surprising insight]. Here\'s what I learned about [business impact]...'},
+            {type:'Mistake Post',template:'I wasted 3 weeks on [thing]. Here\'s what I should have done instead:'},
+            {type:'Framework Post',template:'How to approach [business problem] as a Data Scientist: 1) Frame the ₹ impact 2) Define success metric 3)...'},
+          ].map((t,i)=>(
+            <div key={i} className="card p-16 mb-10 card-glow-g">
+              <div style={{fontFamily:'var(--fm)',fontSize:10,color:'var(--g)',letterSpacing:1,marginBottom:6}}>{t.type.toUpperCase()}</div>
+              <div style={{fontSize:13,color:'var(--t2)',lineHeight:1.6,fontStyle:'italic'}}>"{t.template}"</div>
+            </div>
+          ))}
+        </div>
+        <div className="card p-24">
+          <div className="flex items-center justify-between mb-16">
+            <h3 style={{fontFamily:'var(--fh)'}}>Outreach Tracker</h3>
+            <button className="btn btn-sm btn-c" onClick={()=>setDms(d=>d+1)}>+ Log DM</button>
+          </div>
+          <div className="alert alert-c mb-16">
+            <span className="alert-icon">💬</span>
+            <div style={{fontSize:12}}>Ask for advice, not jobs. 20 thoughtful DMs/week to people in target companies.</div>
+          </div>
+          {connections.map((c,i)=>(
+            <div key={i} className="tracker-row">
+              <div className="tracker-avatar">{c.emoji}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:600}}>{c.name}</div>
+                <div style={{fontSize:11,fontFamily:'var(--fm)',color:'var(--t3)'}}>{c.role}</div>
+              </div>
+              <span className={`badge ${c.status==='Connected'?'badge-g':c.status==='DM Sent'?'badge-c':'badge-y'}`}>{c.status}</span>
+            </div>
+          ))}
+          <div className="hr"/>
+          <div className="sec-eyebrow mb-12">Profile Optimization Checklist</div>
+          {['Headline = role you WANT, not role you have','Banner + Featured section active','Every bullet has a quantified outcome','5 featured posts or projects visible','500+ connections with 10+ endorsements'].map((item,i)=>(
+            <div key={i} className="flex gap-8 mb-8">
+              <span style={{color:'var(--c)',fontFamily:'var(--fm)',fontSize:12,flexShrink:0,marginTop:2}}>→</span>
+              <span style={{fontSize:13,color:'var(--t2)'}}>{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PROJECT MODAL ─────────────────────────────────────────────────────────────
+function Modal({modal,onClose}){
+  if(!modal) return null;
+  if(modal.type==='project'){
+    const p=modal.data;
+    return(
+      <div className="modal" onClick={e=>e.target===e.currentTarget&&onClose()}>
+        <div className="modal-box">
+          <div className="modal-head" style={{borderLeft:`4px solid ${p.color}`}}>
+            <div>
+              <div className="flex gap-10 mb-10">
+                <span style={{fontSize:36}}>{p.emoji}</span>
+                <div>
+                  <div className="flex gap-8 mb-6">
+                    <span className="badge badge-c">{p.category}</span>
+                    <span className="badge" style={{background:'rgba(0,0,0,.3)',borderColor:'var(--border)',color:'var(--t2)'}}>{p.difficulty}</span>
+                  </div>
+                  <h2 style={{fontFamily:'var(--fh)',fontSize:22}}>{p.title}</h2>
+                </div>
+              </div>
+            </div>
+            <button className="btn btn-sm btn-ghost" onClick={onClose}>✕</button>
+          </div>
+          <div className="modal-body">
+            <div className="card p-20 mb-20" style={{borderLeft:`3px solid ${p.color}`}}>
+              <div className="sec-eyebrow mb-8">Business Problem</div>
+              <p style={{fontSize:15,color:'var(--t1)',lineHeight:1.7}}>{p.business}</p>
+            </div>
+            <div className="g2 mb-20">
+              <div>
+                <div className="sec-eyebrow mb-12">Tech Stack</div>
+                <div className="flex gap-8 flex-wrap">
+                  {p.stack.map(s=><span key={s} className="badge badge-g">{s}</span>)}
+                </div>
+              </div>
+              <div>
+                <div className="sec-eyebrow mb-12">Business Impact</div>
+                <div className="impact-pill">{p.impact}</div>
+                <div style={{fontSize:13,color:'var(--t2)',marginTop:12,fontStyle:'italic'}}>Frame it as: "{p.frame}"</div>
+              </div>
+            </div>
+            <div className="sec-eyebrow mb-12">Execution Steps</div>
+            {p.steps.map((s,i)=>(
+              <div key={i} className="flex gap-12 mb-12 items-start">
+                <div style={{width:28,height:28,borderRadius:8,background:`rgba(${p.color.replace(/[^,\d]/g,'')||'0,255,136'},0.15)`,color:p.color,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--fm)',fontSize:12,fontWeight:700,flexShrink:0}}>{i+1}</div>
+                <div style={{flex:1,padding:'4px 0'}}>
+                  <div style={{fontSize:14,color:'var(--t1)',lineHeight:1.6}}>{s}</div>
+                </div>
+              </div>
+            ))}
+            <div className="card p-20 mt-20" style={{background:'rgba(255,204,0,.04)',borderColor:'rgba(255,204,0,.2)'}}>
+              <div style={{fontFamily:'var(--fm)',fontSize:10,color:'var(--y)',letterSpacing:2,marginBottom:8}}>⭐ STAND-OUT MOVE</div>
+              <p style={{fontSize:14,color:'var(--t1)',lineHeight:1.7}}>{p.standout}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+const gradC='linear-gradient(135deg,var(--c),var(--p))';
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
